@@ -60,34 +60,38 @@ Userschema.pre("save", async function(next){
 Userschema.methods.isPasswordcorrect=async function(password){
    return await bcrypt.compare(password,this.password)      
 }
+Userschema.methods.generateAccessToken = function () {
+    return jwt.sign(
+        {
+            _id: this._id,
+            email: this.email,
+            username: this.username,
+            fullname: this.fullname,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h' // Default expiry if not defined
+        }
+    );
+}
 
-Userschema.methods.genrateaccesstoken=function(){
-    jwt.sign({
-        _id:this._id,
-        email:this.email,
-        useranme:this.useranme,
-        fullname:this.fullname
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    {
-        expiresIn:process.env.ACCESS_TOKEN_EXPIRY
-    }
-)
+Userschema.methods.generateRefreshToken = function () {
+    return jwt.sign(
+        {
+            _id: this._id,
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' // Default expiry if not defined
+        }
+    );
 }
 
 
-Userschema.methods.genraterefreshtoken=function(){
-    jwt.sign({
-        _id:this._id,
-    },
-    process.env.REFRESH_TOKEN_SECRET,
-    {
-        expiresIn:process.env.REFRESH_TOKEN_EXPIRY
-    }
-)
-}
 
 
+console.log("Access token expiry:", process.env.ACCESS_TOKEN_EXPIRY); // Should log '1d'
+console.log("Refresh token expiry:", process.env.REFRESH_TOEKN_EXPIRY); // Should log '10d'
 
 
 export const User=mongoose.model("User",Userschema)
