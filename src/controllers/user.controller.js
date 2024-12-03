@@ -194,6 +194,94 @@ const refreshaccesstokenn=asyncHandler(async(req,res)=>{
 })
 
 
+const changepassword=asyncHandler(async(req,res)=>{
+
+           const {oldpassword,newpassword}=req.body;
+
+           const user=await User.findById(req.user?._id)
+           const isPasswordcorrect=   await User.isPasswordcorrect(oldpassword)
+
+        if(!isPasswordcorrect){
+          throw new ApiError(400,"Invalid old Password")
+        }
+        user.password=newpassword;
+        await user.save({validateBeforeSave:false})
+
+        return res.status(200)
+        .json(new Apiresponse(200,{},"password changed sucessfully"))
+})
+
+const getcurrentuser=asyncHandler(async(req,res)=>{
+  return res.status(200).json(200,req.user,"userfetched sucessufully")
+})
+
+const updateaccountdetails=asyncHandler(async(req,res)=>{
+
+const {fullname,email,}=req.body
+
+if(!fullname || !email){
+  throw new ApiError(400,"All fields are required")
+}
+const user=User.findOneAndUpdate(
+  req.user?._id,
+  {
+    $set:{
+      fullname:fullname,
+      email:email
+    }
+  },
+  {new :true}
+).select("-password")
+return res.status(200)
+.json(new Apiresponse(200,user,"updated the user deatils sucessfully"))
+})
+
+const updateavtar=asyncHandler(async(req,res)=>{
+  const avtarlocalpath=req.file?.path
+
+  if(!avtar){
+    throw new ApiError(400,"Avtar isrequired")
+  }
+const avtar=await uploadCloudinary(avtarlocalpath)
+if(!avtar.url){
+  throw new ApiError(400,"error while updating avtar")
+}
+const user=await User.findByIdAndUpdate(
+  req.user?._id,
+  {
+    $set:{
+      avtar:avtar.url
+    }
+  },
+  {new: true}
+)
+return res.status(200)
+.json(new Apiresponse(200,user,"updated the avtar sucessfully"))
+})
+
+const updatecoverimage=asyncHandler(async(req,res)=>{
+  const coverlocalpath=req.file?.path
+
+  if(!coverlocalpath){
+    throw new ApiError(400,"cover image is required")
+  }
+const coverimage=await uploadCloudinary(coverlocalpath)
+if(!coverlocalpath.url){
+  throw new ApiError(400,"error while updating coverimage")
+}
+const user=await User.findByIdAndUpdate(
+  req.user?._id,
+  {
+    $set:{
+      coverimage:coverimage.url
+    }
+  },
+  {new: true}
+)
+return res.status(200)
+.json(new Apiresponse(200,user,"Cover image updated sucessfully"))
+})
+
 export { registeruser,
-  loginuser,logoutuser,refreshaccesstokenn
+  loginuser,logoutuser,refreshaccesstokenn, getcurrentuser,changepassword,updateaccountdetails,updateavtar,updatecoverimage
 };
